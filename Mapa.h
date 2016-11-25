@@ -48,7 +48,7 @@ class Mapa {
 
 }; // class Mapa
 
-Mapa::Mapa() : matriz(Vector < Vector < infoCoor > >()), coordenadas(Conj<Coordenada>()), maxLat(0), maxLon(0){}
+Mapa::Mapa() : matriz(Vector < Vector < Mapa::infoCoor > >()), coordenadas(Conj<Coordenada>()), maxLat(0), maxLon(0){}
 
 const Conj<Coordenada>& Mapa::Coordenadas() const{
 	return coordenadas;
@@ -64,14 +64,14 @@ void Mapa::AgregarCoor(const Coordenada& c){
 			redimensionMapa(nLat, nLon);
 			resize = true;
 		}
-		Vector < Vector <bool> > * nuevoCamino = new Vector<Vector < bool > >();
+		Vector < Vector <bool> >* nuevoCamino = new Vector<Vector < bool > >();
 		dimensionarVector(*nuevoCamino, maxLat, maxLon, nLat, nLon);
 		std::cout << "\n asdasdsadsad " << matriz[nLat][nLon -1].cValida;
 		if (nLat > 0 && matriz[nLat -1][nLon].cValida)
 		{
 			recorrerCaminos(nLat -1, nLon, nuevoCamino);
 		}
-		if ((nLon > 0) && (matriz[nLat][nLon -1].cValida) && !(*(nuevoCamino).[[nLat][nLon -1]])))
+		if ((nLon > 0) && (matriz[nLat][nLon -1].cValida) && !(*(nuevoCamino).[nLat][(nLon - 1)]))
 		{
 			recorrerCaminos(nLat, nLon -1, nuevoCamino);
 		}
@@ -85,11 +85,11 @@ void Mapa::AgregarCoor(const Coordenada& c){
 		}
 		matriz[nLat][nLon].cValida = true;
 		matriz[nLat][nLon].caminos = nuevoCamino;
-		*nuevoCamino[nLat][nLon] = true;
+		nuevoCamino.[nLat][nLon] = true;
 		nuevoCamino = NULL;
 		if (resize)
 		{
-			redimensionarCaminos(m, nLat, nLon);
+			redimensionarCaminos(nLat, nLon);
 		}
 		if (nLat > maxLat)
 		{
@@ -99,7 +99,7 @@ void Mapa::AgregarCoor(const Coordenada& c){
 		{
 			maxLon = nLon;
 		}
-		AgregarRapido(coordenadas, c);
+		coordenadas.AgregarRapido(c);
 	}
 }
 
@@ -112,8 +112,7 @@ bool Mapa::hayCamino(const Coordenada & c1, const Coordenada & c2) {
 	bool res = false;
 	if (matriz[c1.Latitud()][c1.Longitud()].cValida)
 	{
-		 const Vector < Vector < bool > > * x = matriz[c1.Latitud()][c1.Longitud()].caminos;
-		 bool basdasd = x->[c1.Latitud()][c1.Longitud()];
+		 const Vector < Vector < bool > > * x = matriz[c1.Latitud()][c1.Longitud()].caminos->[c1.Latitud()][c1.Longitud()];
 	}
 	if ((matriz[c1.Latitud()][c1.Longitud()].caminos)->[c2.Latitud()][c2.Longitud()])
 	{
@@ -125,22 +124,22 @@ bool Mapa::hayCamino(const Coordenada & c1, const Coordenada & c2) {
 void Mapa::redimensionMapa(Nat x, Nat y){
 	for (int i = maxLat; i < x; ++i)
 	{
-		matriz[i].AgregarAtras(Vector< infoCoor >());
+		matriz.AgregarAtras(Vector < Mapa::infoCoor >());
 		for (int n = 0; i < y; ++i)
 		{
-			matriz[i].AgregarAtras(infoCoor());
+			matriz[i].AgregarAtras(Mapa::infoCoor());
 		}
 	}
 	for (int i = 0; i < maxLat; ++i)
 	{
 		for (int n = maxLon; i < y; ++i)
 		{
-			matriz[n].AgregarAtras(infoCoor());
+			matriz[n].AgregarAtras(Mapa::infoCoor());
 		}
 	}
 }
 
-void Mapa::dimensionarVector(Vector< Vector <bool> > v, Nat x1, Nat y1, Nat x2, Nat y2){
+void Mapa::dimensionarVector(Vector< Vector <bool> >& v, Nat x1, Nat y1, Nat x2, Nat y2){
 	Nat latitud = x1;
 	Nat longitud = y1;
 	if (x1 < x2)
@@ -169,7 +168,7 @@ void Mapa::recorrerCaminos(Nat x, Nat y, Vector< Vector <bool> >* p){
 		{
 			if (x != i && y != l)
 			{
-				if *(camino)[i][l]
+				if (camino->[i][l])
 				{
 					*(p)[i][l] = true;
 					matriz[i][l].caminos = p;
@@ -184,21 +183,21 @@ void Mapa::redimensionarCaminos(Nat x, Nat y){
 	{
 		for (int l = 0; l < maxLon; ++l)
 		{
-			if ( matriz[i][l].cValida && !(matriz[x][y].caminos == matriz[i][l]) )
+			if ( matriz[i][l].cValida && !(matriz[x][y].caminos == matriz[i][l].caminos) )
 			{
 				for (int n = maxLat; n < x; ++n)
 				{
-					*(matriz[i][l].caminos).AgregarAtras(Vector<bool>());
+					matriz[i][l].caminos->AgregarAtras(Vector<bool>());
 					for (int t = 0; t < y; ++t)
 					{
-						*(matriz[i][l].caminos)[n].AgregarAtras(false);
+						matriz[i][l].caminos->[n].AgregarAtras(false);
 					}
 				}
 				for (int b = 0; b < maxLat; ++b)
 				{
 					for (int c = maxLon; c < y; ++c)
 					{
-						*(matriz[i][l].caminos)[b].AgregarAtras(false);
+						matriz[i][l].caminos->[b].AgregarAtras(false);
 					}
 				}
 			}
