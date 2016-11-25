@@ -66,20 +66,19 @@ void Mapa::AgregarCoor(const Coordenada& c){
 		}
 		Vector < Vector <bool> >* nuevoCamino = new Vector<Vector < bool > >();
 		dimensionarVector(*nuevoCamino, maxLat, maxLon, nLat, nLon);
-		std::cout << "\n asdasdsadsad " << matriz[nLat][nLon -1].cValida;
-		if (nLat > 0 && matriz[nLat -1][nLon].cValida)
+		if (nLat > 0 && matriz[nLat -1][nLon].cValida && !(nuevoCamino->[nLat-1][nLon]) )
 		{
 			recorrerCaminos(nLat -1, nLon, nuevoCamino);
 		}
-		if ((nLon > 0) && (matriz[nLat][nLon -1].cValida) && !(*(nuevoCamino).[nLat][(nLon - 1)]))
+		if ((nLon > 0) && (matriz[nLat][nLon -1].cValida) && !(nuevoCamino->[nLat][nLon-1]) )
 		{
-			recorrerCaminos(nLat, nLon -1, nuevoCamino);
+			recorrerCaminos(nLat, (nLon-1), nuevoCamino);
 		}
-		if (matriz[nLat +1][nLon].cValida && !(*nuevoCamino[nLat +1][nLon]))
+		if (matriz[nLat +1][nLon].cValida && !(nuevoCamino->[nLat +1][nLon]))
 		{
 			recorrerCaminos(nLat +1, nLon, nuevoCamino);
 		}
-		if (matriz[nLat][nLon +1].cValida && !(*nuevoCamino[nLat][nLon +1]))
+		if (matriz[nLat][nLon +1].cValida && !(nuevoCamino->[nLat][nLon +1]))
 		{
 			recorrerCaminos(nLat, nLon +1, nuevoCamino);
 		}
