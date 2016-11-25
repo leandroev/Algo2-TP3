@@ -10,33 +10,38 @@ using namespace aed2;
 class Mapa {
 
 	public:
-
+		// Constructor Mapa
 		Mapa();
-
+		// Observador Coordenadas Validas
 		const Conj<Coordenada>& Coordenadas() const;
-
+		// Genera una coodenada valida en mapa
 		void AgregarCoor(const Coordenada & c);
 
 		bool posExistente(const Coordenada & c) const;
-
+		// verifica si dos coordenadas estan conectadas
 		bool hayCamino(const Coordenada & c1, const Coordenada & c2);
 	
 	private:
+		// Agranda la dimension de la matriz
 		void redimensionMapa(Nat x, Nat y);
+		// Dimensiona una matriz con el tamaño apropiado
 		void dimensionarVector(Vector< Vector <bool> > & v, Nat x1, Nat y1, Nat x2, Nat y2);
+		// Recorre la matriz de caminos
 		void recorrerCaminos(Nat x, Nat y, Vector< Vector <bool> >* p);
+		// Redimensiona todas las matrices de caminos
 		void redimensionarCaminos(Nat x, Nat y);
 		
+		// tupla con informacion de las coordenadas
 		struct infoCoor
 		{
 			Vector < Vector < bool > > * caminos;
 			bool cValida;
-
+			//Constructor por defecto
 			infoCoor() { 
 				caminos = NULL;
 				cValida = false;
 			}	
-
+			//Constructor para coordenadas validas
 			infoCoor(Vector < Vector < bool > > * caminos, bool cValida) : caminos(NULL), cValida(false){}
 		};
 
@@ -47,6 +52,7 @@ class Mapa {
 
 
 }; // class Mapa
+
 
 Mapa::Mapa() : matriz(Vector < Vector < Mapa::infoCoor > >()), coordenadas(Conj<Coordenada>()), maxLat(0), maxLon(0){}
 
@@ -59,37 +65,54 @@ void Mapa::AgregarCoor(const Coordenada& c){
 		bool resize = false;
 		Nat nLat = c.Latitud();
 		Nat nLon = c.Longitud();
-		if (nLat > maxLat || nLon > maxLon)
+
+		if (nLat > maxLat || nLon > maxLon) //me fijo si cambia el tamaño del matriz
 		{
 			redimensionMapa(nLat, nLon);
 			resize = true;
 		}
+
+		// Creo la matriz caminos para la nueva Coordenada y la dimensiono
 		Vector < Vector <bool> >* nuevoCamino = new Vector< Vector < bool > >;
 		dimensionarVector(*nuevoCamino, maxLat, maxLon, nLat, nLon);
-		if (nLat > 0 && matriz[nLat -1][nLon].cValida && !((*nuevoCamino)[nLat-1][nLon]) )
+
+		// Recorro los caminos de las coordenadas adyacentes a la nueva
+
+		//caso coordenada a la izquierda
+		if (nLat > 0 && matriz[nLat -1][nLon].cValida && !((*nuevoCamino)[nLat-1][nLon]) ) 
 		{
 			recorrerCaminos(nLat -1, nLon, nuevoCamino);
 		}
-		if ((nLon > 0) && (matriz[nLat][nLon -1].cValida) && !((*nuevoCamino)[nLat][nLon-1]) )
+
+		//caso coordenada abajo
+		if ((nLon > 0) && (matriz[nLat][nLon -1].cValida) && !((*nuevoCamino)[nLat][nLon-1]) )	
 		{
 			recorrerCaminos(nLat, (nLon-1), nuevoCamino);
 		}
+
+		//caso coordenada a la derecha
 		if (matriz[nLat +1][nLon].cValida && !((*nuevoCamino)[nLat +1][nLon]) )
 		{
 			recorrerCaminos(nLat +1, nLon, nuevoCamino);
 		}
-		if (matriz[nLat][nLon +1].cValida && !((*nuevoCamino)[nLat][nLon +1]) )
+
+		//caso coordenada a arriba
+		if (matriz[nLat][nLon +1].cValida && !((*nuevoCamino)[nLat][nLon +1]) )	
 		{
 			recorrerCaminos(nLat, nLon +1, nuevoCamino);
 		}
+
 		matriz[nLat][nLon].cValida = true;
 		matriz[nLat][nLon].caminos = nuevoCamino;
 		(*nuevoCamino)[nLat][nLon] = true;
 		nuevoCamino = NULL;
+
+		//Redimensiona todos los caminos de las demas coordenadas validas
 		if (resize)
 		{
 			redimensionarCaminos(nLat, nLon);
 		}
+		
 		if (nLat > maxLat)
 		{
 			maxLat = nLat;

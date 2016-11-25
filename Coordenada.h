@@ -6,13 +6,13 @@
 class Coordenada {
 
 	public:
-	
+	//	Constructor Coordenada
 	Coordenada(aed2::Nat lat, aed2::Nat lon);
 
 	aed2::Nat Latitud() const;
 
 	aed2::Nat Longitud() const;
-
+	//Distancia Euclideana
 	aed2::Nat Distancia(const Coordenada & c1, const Coordenada & c2) const;
 
 	bool operator == (const Coordenada& c2) const;
