@@ -1,5 +1,5 @@
-#ifndef COLAMIN_H
-#define COLAMIN_H
+#ifndef COLAPR_H
+#define COLAPR_H
 #include "aed2.h"
 #include <iostream>
 #include <ostream>
@@ -161,4 +161,4 @@ class ColaPr
  std::ostream& operator<<(std::ostream& os, const ColaPr& cp);
 }
 
-#endif // COLAMIN_H
+#endif // COLAPR_H

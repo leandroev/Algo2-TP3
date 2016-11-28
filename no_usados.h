@@ -143,3 +143,15 @@ friend std::ostream& operator << (std::ostream& os, const DiccString<T>::Elem& e
     return os << "(" << e.clave << ", " << e.significado << ")";
 }
 
+
+
+/*** Juego ***/
+
+/* Juego::ItJugadores */
+
+ItJugadores(const typename Juego::ItJugadores& otro);
+
+ItJugadores& operator = (const typename Juego::ItJugadores& otro);
+
+bool operator == (const typename Juego::ItJugadores& otro) const;
+

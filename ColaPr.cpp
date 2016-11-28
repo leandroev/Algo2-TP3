@@ -1,10 +1,11 @@
-#include "Colamin.h"
-#include "aed2.h"
+
 #include <string>
 #include <iostream>
 #include <stdio.h>
 #include <ostream>
 
+#include "aed2.h"
+#include "ColaPr.h"
 
 
 namespace aed2{
