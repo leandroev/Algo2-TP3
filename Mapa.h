@@ -12,6 +12,8 @@ class Mapa {
 	public:
 		// Constructor Mapa
 		Mapa();
+		// Destructor Mapa
+		~Mapa();
 		// Observador Coordenadas Validas
 		const Conj<Coordenada>& Coordenadas() const;
 		// Genera una coodenada valida en mapa
@@ -56,17 +58,24 @@ class Mapa {
 
 Mapa::Mapa() : matriz(Vector < Vector < Mapa::infoCoor > >()), coordenadas(Conj<Coordenada>()), maxLat(0), maxLon(0){}
 
+Mapa::~Mapa(){
+
+}
+
 const Conj<Coordenada>& Mapa::Coordenadas() const{
 	return coordenadas;
 }
 
+
+
 void Mapa::AgregarCoor(const Coordenada& c){
-	if(coordenadas.Pertenece(c)){
+	if( !(coordenadas.Pertenece(c)) ){
 		bool resize = false;
 		Nat nLat = c.Latitud();
 		Nat nLon = c.Longitud();
 
-		if (nLat > maxLat || nLon > maxLon) //me fijo si cambia el tamaño del matriz
+		//me fijo si cambia el tamaño del matriz
+		if (nLat > maxLat || nLon > maxLon) 
 		{
 			redimensionMapa(nLat, nLon);
 			resize = true;
@@ -79,29 +88,29 @@ void Mapa::AgregarCoor(const Coordenada& c){
 		// Recorro los caminos de las coordenadas adyacentes a la nueva
 
 		//caso coordenada a la izquierda
-		if (nLat > 0 && matriz[nLat -1][nLon].cValida && !((*nuevoCamino)[nLat-1][nLon]) ) 
+		if ( nLat > 0 && matriz[nLat -1][nLon].cValida ) 
 		{
 			recorrerCaminos(nLat -1, nLon, nuevoCamino);
 		}
 
 		//caso coordenada abajo
-		if ((nLon > 0) && (matriz[nLat][nLon -1].cValida) && !((*nuevoCamino)[nLat][nLon-1]) )	
+		if ( nLon > 0 && matriz[nLat][nLon -1].cValida && !((*nuevoCamino)[nLat][nLon-1]) )	
 		{
 			recorrerCaminos(nLat, (nLon-1), nuevoCamino);
 		}
 
 		//caso coordenada a la derecha
-		if (matriz[nLat +1][nLon].cValida && !((*nuevoCamino)[nLat +1][nLon]) )
+		if ( matriz[nLat +1][nLon].cValida && !((*nuevoCamino)[nLat +1][nLon]) )
 		{
 			recorrerCaminos(nLat +1, nLon, nuevoCamino);
 		}
 
 		//caso coordenada a arriba
-		if (matriz[nLat][nLon +1].cValida && !((*nuevoCamino)[nLat][nLon +1]) )	
+		if ( matriz[nLat][nLon +1].cValida && !((*nuevoCamino)[nLat][nLon +1]) )	
 		{
 			recorrerCaminos(nLat, nLon +1, nuevoCamino);
 		}
-
+		// la coordenada agregada ahora es valida y tiene camino a si misma
 		matriz[nLat][nLon].cValida = true;
 		matriz[nLat][nLon].caminos = nuevoCamino;
 		(*nuevoCamino)[nLat][nLon] = true;
@@ -127,15 +136,11 @@ void Mapa::AgregarCoor(const Coordenada& c){
 
 bool Mapa::posExistente(const Coordenada& c) const{
 	return matriz[c.Latitud()][c.Longitud()].cValida;
-	//return false;
 }
 
 bool Mapa::hayCamino(const Coordenada & c1, const Coordenada & c2) {
 	bool res = false;
-	if (matriz[c1.Latitud()][c1.Longitud()].cValida)
-	{
-		res = (*matriz[c1.Latitud()][c1.Longitud()].caminos)[c2.Latitud()][c2.Longitud()];
-	}
+	res = (*matriz[c1.Latitud()][c1.Longitud()].caminos)[c2.Latitud()][c2.Longitud()];
 	return res;
 }
 
@@ -144,14 +149,14 @@ void Mapa::redimensionMapa(Nat x, Nat y){
 	for (int i = maxLat; i < x; ++i)
 	{
 		matriz.AgregarAtras(Vector < Mapa::infoCoor >());
-		for (int n = 0; i < y; ++i)
+		for (int n = 0; n < y; ++i)
 		{
 			matriz[i].AgregarAtras(Mapa::infoCoor());
 		}
 	}
 	for (int i = 0; i < maxLat; ++i)
 	{
-		for (int n = maxLon; i < y; ++i)
+		for (int n = maxLon; n < y; ++i)
 		{
 			matriz[n].AgregarAtras(Mapa::infoCoor());
 		}
@@ -172,7 +177,7 @@ void Mapa::dimensionarVector(Vector< Vector <bool> >& v, Nat x1, Nat y1, Nat x2,
 	for (int i = 0; i < latitud; ++i)
 	{
 		v.AgregarAtras(Vector<bool>());
-		for (int l = 0; i < longitud; ++i)
+		for (int l = 0; l < longitud; ++i)
 		{
 			v[i].AgregarAtras(false);
 		}
