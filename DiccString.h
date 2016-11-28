@@ -33,10 +33,6 @@ class DiccString {
         const T& Obtener(const String& clave) const;
         T& Obtener(const String& clave);
 
-        // Dada una clave, la borra del diccionario junto a su significado.
-        // PRE: La clave está definida.
-        void Borrar(const String& clave);
-
         // Devuelve las claves del diccionario.
         Conj<String> Claves() const;
 
@@ -53,15 +49,6 @@ class DiccString {
 
                 // Constructor default
                 Iterador();
-
-                // Constructor por copia
-                Iterador(const typename DiccString<T>::Iterador& otro);
-
-                // Operador de asignacion
-                Iterador& operator = (const typename DiccString<T>::Iterador& otro);
-
-                // Operador de comparacion
-                bool operator==(const typename DiccString<T>::Iterador& otro) const;
 
                 // Indica si hay elementos para iterar
                 bool HaySiguiente() const;
@@ -98,17 +85,12 @@ class DiccString {
 
         struct Elem {
 
+            // estr
             const String& clave;
             const T& significado;
 
+            // Constructor
             Elem(const String& c, const T& s) : clave(c), significado(s) { }
-
-            friend std::ostream& operator << (std::ostream& os, const DiccString<T>::Elem& e)
-            {
-                return os << "(" << e.clave << ", " << e.significado << ")";
-            }
-
-            bool operator==(const typename DiccString<T>::Elem& otro) const;
 
         };
 
@@ -117,11 +99,12 @@ class DiccString {
         // estr interna
         struct Nodo {
 
+            // estr
             typename Lista<T>::Iterador significado;
             Arreglo<Nodo*> hijos;
 
+            // Constructor
             Nodo() : significado(Lista<T>().CrearIt()), hijos(Arreglo<Nodo*>(256)) { }
-            Nodo(typename Lista<T>::Iterador sign) : significado(sign), hijos(Arreglo<Nodo*>(256)) { }
         };
 
         // estr
@@ -263,84 +246,6 @@ const T& DiccString<T>::Obtener(const String& clave) const
 }
 
 template <typename T>
-void DiccString<T>::Borrar(const String& clave)
-{
-    assert( Definido(clave) );
-
-    if (this->claves.Longitud() == 1)
-    {
-        borrarNodo(this->raiz);
-        this->raiz = NULL;
-        this->claves.Fin();
-        return;
-    }
-
-    const char* chars = clave.c_str();
-
-    int c = (int)chars[0];
-    Nodo* it = this->raiz->hijos[(int)chars[0]];
-    Nodo* itAnt = this->raiz;
-    Nodo* itAPodar = NULL;
-    Nodo* itAPodarPadre = NULL;
-
-    for (int i = 1; i < clave.length(); i++)
-    {
-        bool esCandidato = !it->significado.HaySiguiente();
-
-        if (esCandidato)
-        {
-            for (int j = 0; j < 256; j++)
-                if (j != (int)chars[i]) esCandidato &= !it->hijos.Definido(j);
-        }
-
-        if (esCandidato)
-        {
-            if (itAPodar == NULL)
-            {
-                itAPodar = it;
-                itAPodarPadre = itAnt;
-                c = (int)chars[i-1];
-            }
-        }
-        else
-        {
-            itAPodar = NULL;
-            itAPodarPadre = NULL;
-        }
-
-        itAnt = it;
-        it = it->hijos[(int)chars[i]];
-    }
-
-    if (itAPodar == NULL)
-    {
-        bool sinHijos = true;
-        for (int k = 0; k < 256; k++) sinHijos &= !it->hijos.Definido(k);
-        if (sinHijos)
-        {
-            borrarNodo(it);
-            itAnt->hijos.Borrar((int)chars[clave.length()-1]);
-        }
-        else
-        {
-            //T* psign = it->significado.Siguiente();
-            it->significado.EliminarSiguiente();
-            //delete psign;
-            it->significado = Lista<T>().CrearIt();
-        }
-    }
-    else
-    {
-        borrarNodo(itAPodar);
-        itAPodarPadre->hijos.Borrar(c);
-    }
-
-    typename Lista<String>::Iterador itClaves = this->claves.CrearIt();
-    while (itClaves.HaySiguiente() && itClaves.Siguiente() != clave) itClaves.Avanzar();
-    itClaves.EliminarSiguiente();
-}
-
-template <typename T>
 Conj<String> DiccString<T>::Claves() const
 {
     Conj<String> cjClaves = Conj<String>();
@@ -371,32 +276,6 @@ DiccString<T>::Iterador::Iterador(const DiccString<T>* d)
 template <typename T>
 DiccString<T>::Iterador::Iterador()
 { }
-
-template <typename T>
-DiccString<T>::Iterador::Iterador(const typename DiccString<T>::Iterador& otro)
-  : itClaves(otro.itClaves), itSignificados(otro.itSignificados)
-{ }
-
-template <typename T>
-typename DiccString<T>::Iterador& DiccString<T>::Iterador::operator = (const typename DiccString<T>::Iterador& otro)
-{
-    this->itClaves = otro.itClaves;
-    this->itSignificados = otro.itSignificados;
-
-    return *this;
-}
-
-template <typename T>
-bool DiccString<T>::Iterador::operator==(const typename DiccString<T>::Iterador& otro) const
-{
-    return this->itClaves == otro.itClaves && this->itSignificados == otro.itSignificados;
-}
-
-template <typename T>
-bool DiccString<T>::Elem::operator==(const typename DiccString<T>::Elem& otro) const
-{
-    return this->clave == otro.clave && this->significado == otro.significado;
-}
 
 template <typename T>
 bool DiccString<T>::Iterador::HaySiguiente() const
