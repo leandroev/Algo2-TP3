@@ -476,7 +476,7 @@ void ColaPr::Swap(ColaPr::Nodo* a, ColaPr::Nodo* b){
 
  }
 
- const ColaPr::Iterador ColaPr::Encolar(const Clave& k){
+ ColaPr::Iterador ColaPr::Encolar(const Clave& k){
 
 	ColaPr::Iterador it = CrearIt();
 	it.Agregar(k);

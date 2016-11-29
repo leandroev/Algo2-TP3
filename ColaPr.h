@@ -74,7 +74,7 @@ class ColaPr
 
          ///Agrega la clave K al final de la cola
 
-        const Iterador Encolar(const Clave& k);
+        Iterador Encolar(const Clave& k);
 
         ///Funcion para mostrar el arbol de la cola de prioridad en PreOrder
 
