@@ -47,7 +47,7 @@ Juego::Juego(const Mapa& m)
 Juego::~Juego()
 { }
 
-void Juego::AgregarPokemon(const Pokemon p, const Coordenada c)
+void Juego::AgregarPokemon(const Pokemon &p, const Coordenada &c)
 {
     #ifdef DEBUG
         assert( this->PuedoAgregarPokemon(c) );
@@ -59,6 +59,14 @@ void Juego::AgregarPokemon(const Pokemon p, const Coordenada c)
     typename Conj<Jugador>::Iterador itCj;
     ColaPr cp;
     typename ColaPr::Iterador itCp;
+
+    // Vaciar la cola de prioridad, que puede tener elementos por un pk anterior que fue capturado
+    while (!this->infoDePos[c.Latitud()][c.Longitud()].jugadoresEsperando.EsVacio())
+    {
+        Jugador e = this->infoDePos[c.Latitud()][c.Longitud()].jugadoresEsperando.Proximo().num;
+        this->jugadores[e].enRangoDe = ColaPr().CrearIt();
+        this->infoDePos[c.Latitud()][c.Longitud()].jugadoresEsperando.Desencolar();     // O(log(EC))
+    } // O(EC * log(EC))
 
     // Busco los entrenadores posibles, que son aquellos que quedan en el rango del pokemon p
     cj = this->EntrenadoresPosibles(c, Conj<Jugador>());
@@ -107,7 +115,7 @@ Nat Juego::AgregarJugador()
     return this->jugadores.Longitud() - 1;
 }
 
-void Juego::Conectarse(const Jugador e, const Coordenada c)
+void Juego::Conectarse(const Jugador &e, const Coordenada &c)
 {
     #ifdef DEBUG
         assert( e < this->jugadores.Longitud() && !this->EstaConectado(e) && this->mapa.posExistente(c) );
@@ -139,7 +147,7 @@ void Juego::Conectarse(const Jugador e, const Coordenada c)
     this->jugadores[e].conectado = true;
 }
 
-void Juego::Desconectarse(const Jugador e)
+void Juego::Desconectarse(const Jugador &e)
 {
     #ifdef DEBUG
         assert( e < this->jugadores.Longitud() && this->EstaConectado(e) );
@@ -160,16 +168,156 @@ void Juego::Desconectarse(const Jugador e)
     this->jugadores[e].conectado = false;
 }
 
-void Juego::Moverse(const Jugador e, const Coordenada c)
+void Juego::Moverse(const Jugador &e, const Coordenada &c)
 {
     #ifdef DEBUG
-        assert( e < this->jugadores.Longitud() && this->EstaConectado(e) && this->mapa.posExistente(c) );
+        assert( e < this->jugadores.Longitud() && EstaConectado(e) && this->mapa.posExistente(c) );
     #endif
 
+    // Verifico el movimiento
+        // Si es un mov invalido, se sanciona al jugador y no se lo mueve
+        // Si es un mov valido, se mueve al jugador
+    if (DebeSancionarse(e, c))
+    {
+        // Acumula sancion
+        this->jugadores[e].sanciones++;
 
+        // Si llega a la quinta sancion, es eliminado del juego
+        if (this->jugadores[e].sanciones >= 5)
+        {
+            // Eliminar los pokemons capturados por el jugador
+            Nat cantCapt;
+            Pokemon pk;
+            typename DiccString<Nat>::Iterador itPC = this->jugadores[e].capturados.CrearIt();
+            while (itPC.HaySiguiente())     // O(PC)
+            {
+                pk = itPC.SiguienteClave();
+                cantCapt = itPC.SiguienteSignificado();
+
+                this->pokemons.Obtener(pk).cantCapturados -= cantCapt;      // O(|P|)
+                this->cantTotalPokemons -= cantCapt;
+
+                itPC.Avanzar();
+            } // O(PC * |P|)
+
+            Conj<Pokemon> pkC = this->jugadores[e].capturados.Claves();     // O(PC)
+            typename Conj<Pokemon>::Iterador itPkc = pkC.CrearIt();
+            while (itPkc.HaySiguiente())
+            {
+                this->jugadores[e].capturados.Borrar(itPkc.Siguiente());    // O(|P|)
+                itPkc.Avanzar();
+            } // O(PC * |P|)
+
+            this->jugadores[e].cantCapturados = 0;
+
+            // Elimino al jugador de la posicion en la que estaba
+            this->jugadores[e].enPos.EliminarSiguiente();
+
+            // Si estaba en el rango de un pokemon, lo elimino de la cola de prioridad
+            if (this->jugadores[e].enRangoDe.HayMas())
+                this->jugadores[e].enRangoDe.eliminar();
+
+            // Marco al jugador como desconectado
+            this->jugadores[e].conectado = false;
+
+            // Marco al jugador como eliminado
+            this->jugadoresValidos[e] = false;
+        }
+    }
+    else
+    {
+        // booleanos para saber en que caso estamos
+        bool estabaEnRango = HayPokemonCercano(this->jugadores[e].posicion);
+        bool salioDeRango = estabaEnRango &&
+                (!HayPokemonCercano(c) ||
+                 PosPokemonCercano(this->jugadores[e].posicion) != PosPokemonCercano(c));
+        bool entroEnRango = HayPokemonCercano(c);
+
+        // Si estaba en un rango y sale, lo quito de la cola de prioridad del pokemon, no modifica movsEsp
+        if (estabaEnRango && salioDeRango)
+        {
+            this->jugadores[e].enRangoDe.eliminar();    // O(log(EC))
+            this->jugadores[e].enRangoDe = ColaPr().CrearIt();
+        }
+
+        // Si entro en un rango nuevo, lo agrego a la cola de prioridad del pokemon, resetea movsEsp
+        if (!estabaEnRango && entroEnRango)
+        {
+            Nat lat = PosPokemonCercano(c).Latitud();
+            Nat lon = PosPokemonCercano(c).Longitud();
+            Nat capt = this->jugadores[e].cantCapturados;
+
+            this->jugadores[e].enRangoDe =
+                this->infoDePos[lat][lon].jugadoresEsperando.Encolar(ColaPr::Clave(capt, e));   // O(log(EC))
+
+            this->infoDePos[lat][lon].cantMovsEsperando = 0;
+        }
+
+        // Sumo cantMovsEsperando y capturo los pokemons que deben ser capturados
+        typename Conj<Coordenada>::Iterador itPS = this->posConPokemons.CrearIt();
+        while (itPS.HaySiguiente())
+        {
+            Coordenada posPS = itPS.Siguiente();
+            Nat latPS = posPS.Latitud();
+            Nat lonPS = posPS.Longitud();
+
+            bool sumaMovsEsp = true;
+
+            // Si estaba en un rango y no salio, y esa coordenada es la actual, no suma movsEsp
+            if (estabaEnRango && !salioDeRango && PosPokemonCercano(c) == posPS)
+                sumaMovsEsp = false;
+
+            // Si entro en un rango nuevo, y esa coordenada es la actual, no suma movsEsp
+            if (!estabaEnRango && entroEnRango && PosPokemonCercano(c) == posPS)
+                sumaMovsEsp = false;
+
+            // Si no hay jugadores en el rango de la coordenada actual, no suma movsEsp
+            if (this->infoDePos[latPS][lonPS].jugadoresEsperando.EsVacio())
+                sumaMovsEsp = false;
+
+            // Suma movsEsp si corresponde
+            if (sumaMovsEsp) this->infoDePos[latPS][lonPS].cantMovsEsperando++;
+
+            // Verifico si el pokemon es capturado
+            if (this->infoDePos[latPS][lonPS].cantMovsEsperando >= 10)
+            {
+                // Obtengo el pokemon de la posicion actual
+                Pokemon pkCapt = this->infoDePos[latPS][lonPS].pokemon;
+
+                // Obtengo el entrenador que lo captura
+                Jugador jugCapt = this->infoDePos[latPS][lonPS].jugadoresEsperando.Proximo().num;
+
+                // Sumo el pk al jugador
+                this->jugadores[e].cantCapturados++;
+                if (this->jugadores[jugCapt].capturados.Definido(pkCapt))       // O(|P|)
+                    this->jugadores[jugCapt].capturados.Obtener(pkCapt)++;      // O(|P|)
+                else
+                    this->jugadores[jugCapt].capturados.Definir(pkCapt, 1);     // O(|P|)
+
+                // Actualizo cantidad de salvajes y capturados del pokemon
+                this->pokemons.Obtener(pkCapt).cantSalvajes--;                  // O(|P|)
+                this->pokemons.Obtener(pkCapt).cantCapturados++;                // O(|P|)
+
+                // Elimino la pos del pk capturado de posConPokemons
+                itPS.EliminarSiguiente();
+
+                // Actualizo infoDePos
+                this->infoDePos[latPS][lonPS].hayPokemon = false;
+                this->infoDePos[latPS][lonPS].pokemon = "";
+                this->infoDePos[latPS][lonPS].cantMovsEsperando = 0;
+            }
+
+            itPS.Avanzar();
+        } // O(PS * |P|)
+
+        // Actualizo la posicion del jugador
+        this->jugadores[e].enPos.EliminarSiguiente();
+        this->jugadores[e].enPos =
+            this->infoDePos[c.Latitud()][c.Longitud()].jugadoresEnPos.AgregarRapido(e);
+    }
 }
 
-bool Juego::DebeSancionarse(const Jugador e, const Coordenada c) const
+bool Juego::DebeSancionarse(const Jugador &e, const Coordenada &c) const
 {
     #ifdef DEBUG
         assert( e < this->jugadores.Longitud() );
@@ -196,7 +344,7 @@ Juego::ItJugadores Juego::Jugadores() const
     return this->CrearItJugadores();
 }
 
-bool Juego::EstaConectado(const Jugador e) const
+bool Juego::EstaConectado(const Jugador &e) const
 {
     #ifdef DEBUG
         assert( e < this->jugadores.Longitud() );
@@ -205,7 +353,7 @@ bool Juego::EstaConectado(const Jugador e) const
     return this->jugadores[e].conectado;
 }
 
-Nat Juego::Sanciones(const Jugador e) const
+Nat Juego::Sanciones(const Jugador &e) const
 {
     #ifdef DEBUG
         assert( e < this->jugadores.Longitud() );
@@ -214,7 +362,7 @@ Nat Juego::Sanciones(const Jugador e) const
     return this->jugadores[e].sanciones;
 }
 
-Coordenada Juego::Posicion(const Jugador e) const
+Coordenada Juego::Posicion(const Jugador &e) const
 {
     #ifdef DEBUG
         assert( e < this->jugadores.Longitud() && this->EstaConectado(e) );
@@ -223,7 +371,7 @@ Coordenada Juego::Posicion(const Jugador e) const
     return this->jugadores[e].posicion;
 }
 
-const typename DiccString<Nat>::Iterador Juego::Pokemos(const Jugador e) const
+const typename DiccString<Nat>::Iterador Juego::Pokemos(const Jugador &e) const
 {
     #ifdef DEBUG
         assert( e < this->jugadores.Longitud() );
@@ -251,7 +399,7 @@ const Conj<Coordenada> Juego::PosConPokemons() const
     return this->posConPokemons;
 }
 
-Pokemon Juego::PokemonEnPos(const Coordenada c) const
+Pokemon Juego::PokemonEnPos(const Coordenada &c) const
 {
     #ifdef DEBUG
         assert( this->posConPokemons.Pertenece(c) );
@@ -260,7 +408,7 @@ Pokemon Juego::PokemonEnPos(const Coordenada c) const
     return this->infoDePos[c.Latitud()][c.Longitud()].pokemon;
 }
 
-Nat Juego::CantMovimientosParaCaptura(const Coordenada c) const
+Nat Juego::CantMovimientosParaCaptura(const Coordenada &c) const
 {
     #ifdef DEBUG
         assert( this->posConPokemons.Pertenece(c) );
@@ -271,7 +419,7 @@ Nat Juego::CantMovimientosParaCaptura(const Coordenada c) const
 
 // otras operaciones (exportadas)
 
-bool Juego::PuedoAgregarPokemon(const Coordenada c) const
+bool Juego::PuedoAgregarPokemon(const Coordenada &c) const
 {
     bool hayPk = false;
     typename Conj<Coordenada>::const_Iterador it = this->posConPokemons.CrearIt();
@@ -285,7 +433,7 @@ bool Juego::PuedoAgregarPokemon(const Coordenada c) const
     return !hayPk;
 }
 
-bool Juego::HayPokemonCercano(const Coordenada c) const
+bool Juego::HayPokemonCercano(const Coordenada &c) const
 {
     bool hayPk = false;
     Nat lat, lon = 0;
@@ -306,7 +454,7 @@ bool Juego::HayPokemonCercano(const Coordenada c) const
     return hayPk;
 }
 
-Coordenada Juego::PosPokemonCercano(const Coordenada c) const
+Coordenada Juego::PosPokemonCercano(const Coordenada &c) const
 {
     #ifdef DEBUG
         assert( this->HayPokemonCercano(c) );
@@ -331,7 +479,7 @@ Coordenada Juego::PosPokemonCercano(const Coordenada c) const
     return it.Anterior();
 }
 
-Conj<Jugador> Juego::EntrenadoresPosibles(const Coordenada c, const Conj<Jugador> es) const
+Conj<Jugador> Juego::EntrenadoresPosibles(const Coordenada &c, const Conj<Jugador> &es) const
 {
     #ifdef DEBUG
         assert( this->HayPokemonCercano(c) );
@@ -367,7 +515,7 @@ Conj<Jugador> Juego::EntrenadoresPosibles(const Coordenada c, const Conj<Jugador
     return cj;
 }
 
-Nat Juego::IndiceRareza(const Pokemon p) const
+Nat Juego::IndiceRareza(const Pokemon &p) const
 {
     #ifdef DEBUG
         assert( this->pokemons.Definido(p) );
@@ -384,7 +532,7 @@ Nat Juego::CantPokemonsTotales() const
     return this->cantTotalPokemons;
 }
 
-Nat Juego::CantMismaEspecie(const Pokemon p) const
+Nat Juego::CantMismaEspecie(const Pokemon &p) const
 {
     Nat cantSalvajes, cantCapturados = 0;
 
@@ -399,7 +547,7 @@ Nat Juego::CantMismaEspecie(const Pokemon p) const
 
 // otras operaciones (no exportadas)
 
-Conj<Coordenada> Juego::PosCercanas(const Coordenada c) const
+Conj<Coordenada> Juego::PosCercanas(const Coordenada &c) const
 {
     Conj<Coordenada> cs = Conj<Coordenada>();
 
@@ -484,7 +632,7 @@ typename Juego::ItJugadores Juego::CrearItJugadores() const
 
 Juego::ItJugadores::ItJugadores() { }
 
-Juego::ItJugadores::ItJugadores(const Juego& j)
+Juego::ItJugadores::ItJugadores(const Juego &j)
 {
     this->elems = j.jugadoresValidos;
     this->pos = 0;

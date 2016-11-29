@@ -19,19 +19,19 @@ class Juego {
 
         // generadores
 
-        Juego(const Mapa& m);
+        Juego(const Mapa &m);
 
         ~Juego();
 
-        void AgregarPokemon(const Pokemon p, const Coordenada c);
+        void AgregarPokemon(const Pokemon &p, const Coordenada &c);
 
         Nat AgregarJugador();
 
-        void Conectarse(const Jugador e, const Coordenada c);
+        void Conectarse(const Jugador &e, const Coordenada &c);
 
-        void Desconectarse(const Jugador e);
+        void Desconectarse(const Jugador &e);
 
-        void Moverse(const Jugador e, const Coordenada c);
+        void Moverse(const Jugador &e, const Coordenada &c);
 
         // observadores
 
@@ -39,37 +39,37 @@ class Juego {
 
         ItJugadores Jugadores() const;
 
-        bool EstaConectado(const Jugador e) const;
+        bool EstaConectado(const Jugador &e) const;
 
-        Nat Sanciones(const Jugador e) const;
+        Nat Sanciones(const Jugador &e) const;
 
-        Coordenada Posicion(const Jugador e) const;
+        Coordenada Posicion(const Jugador &e) const;
 
-        const typename DiccString<Nat>::Iterador Pokemos(const Jugador e) const;
+        const typename DiccString<Nat>::Iterador Pokemos(const Jugador &e) const;
 
         Conj<Jugador> Expulsados() const;
 
         const Conj<Coordenada> PosConPokemons() const;
 
-        Pokemon PokemonEnPos(const Coordenada c) const;
+        Pokemon PokemonEnPos(const Coordenada &c) const;
 
-        Nat CantMovimientosParaCaptura(const Coordenada c) const;
+        Nat CantMovimientosParaCaptura(const Coordenada &c) const;
 
         // otras operaciones (exportadas)
 
-        bool PuedoAgregarPokemon(const Coordenada c) const;
+        bool PuedoAgregarPokemon(const Coordenada &c) const;
 
-        bool HayPokemonCercano(const Coordenada c) const;
+        bool HayPokemonCercano(const Coordenada &c) const;
 
-        Coordenada PosPokemonCercano(const Coordenada c) const;
+        Coordenada PosPokemonCercano(const Coordenada &c) const;
 
-        Conj<Jugador> EntrenadoresPosibles(const Coordenada c, const Conj<Jugador> es) const;
+        Conj<Jugador> EntrenadoresPosibles(const Coordenada &c, const Conj<Jugador> &es) const;
 
-        Nat IndiceRareza(const Pokemon p) const;
+        Nat IndiceRareza(const Pokemon &p) const;
 
         Nat CantPokemonsTotales() const;
 
-        Nat CantMismaEspecie(const Pokemon p) const;
+        Nat CantMismaEspecie(const Pokemon &p) const;
 
         // Creación del Iterador de Jugadores
         ItJugadores CrearItJugadores() const;
@@ -92,7 +92,7 @@ class Juego {
                 Vector<bool> elems;
                 Nat pos;
 
-                ItJugadores(const Juego& j);
+                ItJugadores(const Juego &j);
 
                 friend typename Juego::ItJugadores Juego::CrearItJugadores() const;
 
@@ -102,11 +102,11 @@ class Juego {
 
         // otras operaciones (no exportadas)
 
-        bool DebeSancionarse(const Jugador e, const Coordenada c) const;
+        bool DebeSancionarse(const Jugador &e, const Coordenada &c) const;
 
-        Conj<Coordenada> PosCercanas(const Coordenada c) const;
+        Conj<Coordenada> PosCercanas(const Coordenada &c) const;
 
-        // estructuras necesarias para la estr de juego
+        // estructuras internas para la estr de Juego
         struct infoJugador {
             bool conectado;
             Nat sanciones;
@@ -140,7 +140,7 @@ class Juego {
                 jugadoresEnPos(Conj<Nat>()), cantMovsEsperando(0), jugadoresEsperando(ColaPr()) { }
         };
 
-        // estr
+        // estr de Juego
         Mapa mapa;
         Vector<infoJugador> jugadores;
         Vector<bool> jugadoresValidos;
