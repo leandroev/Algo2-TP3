@@ -100,7 +100,9 @@ class ColaPr
 			
 			Iterador& operator = (const typename ColaPr::Iterador& otro);
 
-			const Clave& Actual();
+            bool HayMas() const;
+
+            const Clave& Actual() const;
 
 			///Elimina el actual del iterador.
 

@@ -99,7 +99,13 @@ ColaPr::Iterador& ColaPr::Iterador::operator = (const typename ColaPr::Iterador&
 
 }
 
-const ColaPr::Clave& ColaPr::Iterador::Actual(){
+bool ColaPr::Iterador::HayMas() const{
+
+    return _nodo != NULL;
+
+}
+
+const ColaPr::Clave& ColaPr::Iterador::Actual() const{
 
 	return _nodo->raiz;
 
