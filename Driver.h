@@ -1,10 +1,9 @@
 #ifndef DRIVER_H_
 #define DRIVER_H_
 
-#include "aed2/Conj.h"
-#include "aed2/Dicc.h"
-#include "aed2/TiposBasicos.h"
+#include "aed2.h"
 #include "TiposJuego.h"
+#include "Coordenada.h"
 
 using namespace aed2;
 
