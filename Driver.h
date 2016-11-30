@@ -3,7 +3,7 @@
 
 #include "aed2.h"
 #include "TiposJuego.h"
-#include "Coordenada.h"
+#include "Juego.h"
 
 using namespace aed2;
 
@@ -18,7 +18,7 @@ class Driver {
 	~Driver();
 
 	/* Agrega el pokemon pasado por parametro en su coordenada al juego. */
-	void agregarPokemon(const Pokemon & p, const Coordenada & c);
+    void agregarPokemon(const Pokemon & p, const Coordenada & c);
 
 	/* Agrega un nuevo jugador, asignandole el id correspondiente. 
 	 * Esta función deberá cambiar su aridad respecto del TAD devolviendo: 
@@ -119,6 +119,8 @@ class Driver {
 	 * con el cuál interactuar. Además, pueden declarar todas las		   *
 	 * funciones auxiliares que les hagan falta.							*
 	 ************************************************************************/  
+
+    Juego juego;
 
 }; // class Driver
 
