@@ -19,6 +19,8 @@ class Juego {
 
         // generadores
 
+        Juego() { }
+
         Juego(const Mapa &m);
 
         ~Juego();
@@ -49,7 +51,7 @@ class Juego {
 
         Conj<Jugador> Expulsados() const;
 
-        const Conj<Coordenada> PosConPokemons() const;
+        Conj<Coordenada> PosConPokemons() const;
 
         Pokemon PokemonEnPos(const Coordenada &c) const;
 

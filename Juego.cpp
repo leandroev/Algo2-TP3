@@ -394,7 +394,7 @@ Conj<Jugador> Juego::Expulsados() const
     return eliminados;
 }
 
-const Conj<Coordenada> Juego::PosConPokemons() const
+Conj<Coordenada> Juego::PosConPokemons() const
 {
     return this->posConPokemons;
 }
