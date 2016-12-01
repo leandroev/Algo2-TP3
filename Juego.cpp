@@ -3,19 +3,17 @@
 // generadores
 
 Juego::Juego(const Mapa& m)
-    : mapa(m),
-      jugadores(Vector<infoJugador>()),
-      jugadoresValidos(Vector<bool>()),
-      pokemons(DiccString<infoPokemon>()),
-      posConPokemons(Conj<Coordenada>()),
-      cantTotalPokemons(0)
 {
-    // se utiliza la lista de inicializacion para crear los objetos vacios de cada propiedad,
-    // excepto para infoDePos
+    // se inicializa la estructura vacia
+    // para todos los campos se llamo al constructor defualt del tipo
+    // resta setear cantTotalPokemons en 0, agregar las coordenadas al mapa y llenar infoDePos
+    this->cantTotalPokemons = 0;
 
     // busco maximo valor de latitud y longitud en las coordenadas del mapa
-    Nat maxLat, maxLon = 0;
+    Nat maxLat = 0;
+    Nat maxLon = 0;
     Coordenada c;
+
     typename Conj<Coordenada>::const_Iterador itCs = m.Coordenadas().CrearIt();
 
     while (itCs.HaySiguiente())
@@ -25,6 +23,9 @@ Juego::Juego(const Mapa& m)
         itCs.Avanzar();
     }
 
+    maxLat++;
+    maxLon++;
+
     // creo arreglo de tamano maxLat
     this->infoDePos = Arreglo< Arreglo<infoPos> >(maxLat);
 
@@ -32,6 +33,9 @@ Juego::Juego(const Mapa& m)
     while (itCs.HayAnterior())
     {
         c = itCs.Anterior();
+
+        // agrego coordenada a mapa
+        this->mapa.AgregarCoor(c);
 
         // si la latitud no esta definida, defino con un arreglo de infoPos de tamano maxLon
         if (!this->infoDePos.Definido(c.Latitud()))
@@ -334,7 +338,7 @@ bool Juego::DebeSancionarse(const Jugador &e, const Coordenada &c) const
 
 // observadores
 
-const Mapa Juego::MapaJuego() const
+const Mapa &Juego::MapaJuego() const
 {
     return this->mapa;
 }
