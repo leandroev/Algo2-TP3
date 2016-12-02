@@ -75,6 +75,34 @@ void test_conectar_desconectar_jugador()
     ASSERT( !d.estaConectado(j0) );
 }
 
+void test_puedo_agregar_pokemons()
+{
+    Conj<Coordenada> cs;
+    for (Nat lat = 0; lat <= 5; lat++)
+        for (Nat lon = 0; lon <= 5; lon++)
+            cs.AgregarRapido(Coordenada(lat, lon));
+
+    Driver d(cs);
+
+    d.agregarPokemon("pokemon", Coordenada(0, 0));
+
+    for (Nat lat = 0; lat <= 5; lat++)
+    {
+        for (Nat lon = 0; lon <= 5; lon++)
+        {
+            if ((lat == 4 && lon == 4) || (lat == 5 && lon > 0) || (lon == 5 && lat > 0))
+            {
+                ASSERT( d.puedoAgregarPokemon(Coordenada(lat, lon)));
+            }
+            else
+            {
+                ASSERT( !d.puedoAgregarPokemon(Coordenada(lat, lon)));
+            }
+        }
+    }
+
+}
+
 void test_agregar_pokemons()
 {
     Conj<Coordenada> cs = get_coordenadas();
@@ -499,6 +527,7 @@ int main()
     RUN_TEST(test_constructor_con_mapa);
     RUN_TEST(test_agregar_jugadores);
     RUN_TEST(test_conectar_desconectar_jugador);
+    RUN_TEST(test_puedo_agregar_pokemons);
     RUN_TEST(test_agregar_pokemons);
 
     RUN_TEST(super_test);

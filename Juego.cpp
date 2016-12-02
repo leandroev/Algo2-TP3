@@ -449,16 +449,16 @@ Nat Juego::CantMovimientosParaCaptura(const Coordenada &c) const
 
 bool Juego::PuedoAgregarPokemon(const Coordenada &c) const
 {
-    bool hayPk = false;
+    bool hayPkEnTerritorio = false;
     typename Conj<Coordenada>::const_Iterador it = this->posConPokemons.CrearIt();
 
     while (it.HaySiguiente())
     {
-        hayPk |= c.Distancia(it.Siguiente()) <= 25;
+        hayPkEnTerritorio = hayPkEnTerritorio || c.Distancia(it.Siguiente()) <= 25;
         it.Avanzar();
     }
 
-    return !hayPk;
+    return !hayPkEnTerritorio;
 }
 
 bool Juego::HayPokemonCercano(const Coordenada &c) const
