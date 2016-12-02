@@ -120,7 +120,7 @@ void Mapa::AgregarCoor(const Coordenada& c){
         if(maxLat < nLat){
             maxLat = nLat;
         }
-        if(maxLat < nLon){
+        if(maxLon < nLon){
             maxLon = nLon;
         }
 
