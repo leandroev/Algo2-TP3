@@ -101,6 +101,8 @@ void test_puedo_agregar_pokemons()
         }
     }
 
+    ASSERT (!d.puedoAgregarPokemon(Coordenada(90, 90)));
+
 }
 
 void test_agregar_pokemons()

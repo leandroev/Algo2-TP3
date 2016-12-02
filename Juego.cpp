@@ -449,6 +449,8 @@ Nat Juego::CantMovimientosParaCaptura(const Coordenada &c) const
 
 bool Juego::PuedoAgregarPokemon(const Coordenada &c) const
 {
+    if (!this->mapa.posExistente(c)) return false;
+
     bool hayPkEnTerritorio = false;
     typename Conj<Coordenada>::const_Iterador it = this->posConPokemons.CrearIt();
 
