@@ -1,17 +1,25 @@
 #include "Driver.h"
 
 Driver::Driver(const Conj< Coordenada > & cs)
+      : juego(CrearMapa(cs))
+{ }
+
+const Mapa& Driver::CrearMapa(const Conj<Coordenada> & cs)
 {
-    Mapa map = Mapa();
+    //Mapa m;
 
     typename Conj<Coordenada>::const_Iterador itCs = cs.CrearIt();
+
     while (itCs.HaySiguiente())
     {
-        map.AgregarCoor(itCs.Siguiente());
+        Coordenada c = Coordenada(itCs.Siguiente().Latitud(), itCs.Siguiente().Longitud());
+        this->mapaJuego.AgregarCoor(c);
         itCs.Avanzar();
     }
 
-    this->juego = Juego(map);
+    //this->mapaJuego = m;
+
+    return this->mapaJuego;
 }
 
 Driver::~Driver()
@@ -44,8 +52,7 @@ void Driver::moverse(const Jugador & j, const Coordenada & c)
 
 Conj< Coordenada > Driver::mapa() const
 {
-    Conj<Coordenada> res = this->juego.MapaJuego().Coordenadas();
-    return res;
+    return this->juego.MapaJuego().Coordenadas();
 }
 
 bool Driver::hayCamino(const Coordenada & c1, const Coordenada & c2) const

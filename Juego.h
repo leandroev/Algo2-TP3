@@ -9,6 +9,7 @@
 #include "ColaPr.h"
 
 using namespace aed2;
+using namespace std;
 
 class Juego {
 
@@ -37,7 +38,7 @@ class Juego {
 
         // observadores
 
-        const Mapa MapaJuego() const;
+        const Mapa& MapaJuego() const;
 
         ItJugadores Jugadores() const;
 
