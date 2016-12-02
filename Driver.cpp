@@ -6,8 +6,6 @@ Driver::Driver(const Conj< Coordenada > & cs)
 
 const Mapa& Driver::CrearMapa(const Conj<Coordenada> & cs)
 {
-    //Mapa m;
-
     typename Conj<Coordenada>::const_Iterador itCs = cs.CrearIt();
 
     while (itCs.HaySiguiente())
@@ -16,8 +14,6 @@ const Mapa& Driver::CrearMapa(const Conj<Coordenada> & cs)
         this->mapaJuego.AgregarCoor(c);
         itCs.Avanzar();
     }
-
-    //this->mapaJuego = m;
 
     return this->mapaJuego;
 }

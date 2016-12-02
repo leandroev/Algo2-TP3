@@ -58,7 +58,11 @@ void Juego::AgregarPokemon(const Pokemon &p, const Coordenada &c)
     #endif
 
     Jugador jug;
-    Nat cantCapt;
+    Nat cantCapt = 0;
+    Nat lat = 0;
+    Nat lon = 0;
+    Conj<Coordenada> cercanas = this->PosCercanas(c);
+    typename Conj<Coordenada>::Iterador itCercanas = cercanas.CrearIt();
     Conj<Jugador> cj;
     typename Conj<Jugador>::Iterador itCj;
     ColaPr cp;
@@ -72,27 +76,42 @@ void Juego::AgregarPokemon(const Pokemon &p, const Coordenada &c)
         this->infoDePos[c.Latitud()][c.Longitud()].jugadoresEsperando.Desencolar();     // O(log(EC))
     } // O(EC * log(EC))
 
-    // Busco los entrenadores posibles, que son aquellos que quedan en el rango del pokemon p
-    cj = this->EntrenadoresPosibles(c, Conj<Jugador>());
-    itCj = cj.CrearIt();
-
-    // Agrego cada entrenador posible a la cola de prioridad, y guardo el iterador para el jugador
-    while (itCj.HaySiguiente())     // O(EC)
+    // Busco los entrenadores posibles, que son aquellos que quedan en el rango del pokemon p y estan conectados
+    while (itCercanas.HaySiguiente())   // O(13)
     {
-        jug = itCj.Siguiente();
-        cantCapt = this->jugadores[jug].cantCapturados;
+        // coordenada actual
+        lat = itCercanas.Siguiente().Latitud();
+        lon = itCercanas.Siguiente().Longitud();
 
-        itCp = cp.Encolar(ColaPr::Clave(cantCapt, jug));    // O(Log(EC))
+        // itero los jugadores que estan en esa posicion
+        itCj = this->infoDePos[lat][lon].jugadoresEnPos.CrearIt();
 
-        this->jugadores[jug].enRangoDe = itCp;
+        while (itCj.HaySiguiente())     // O(EC)
+        {
+            jug = itCj.Siguiente();
+            cantCapt = this->jugadores[jug].cantCapturados;
 
-        itCj.Avanzar();
-    }
+            // si esta conectado, lo agrego a la cola de prioridad del pokemon
+            if (this->EstaConectado(jug))
+            {
+                //itCp = cp.Encolar(ColaPr::Clave(cantCapt, jug));    // O(Log(EC))
+
+                //this->jugadores[jug].enRangoDe = itCp;
+
+                this->jugadores[jug].enRangoDe =
+                    this->infoDePos[c.Latitud()][c.Longitud()].jugadoresEsperando.Encolar(ColaPr::Clave(cantCapt, jug));    // O(Log(EC))
+            }
+
+            itCj.Avanzar();
+        } // O(EC * Log(EC))
+
+        itCercanas.Avanzar();
+    } // O(13 * EC * Log(EC)) = O(EC * Log(EC))
 
     // Set en infoDePos para la coordenada c: hayPokemon en true, el pokemon p y su cola de prioridad de jugadores
     this->infoDePos[c.Latitud()][c.Longitud()].hayPokemon = true;
     this->infoDePos[c.Latitud()][c.Longitud()].pokemon = p;
-    this->infoDePos[c.Latitud()][c.Longitud()].jugadoresEsperando = cp;
+    //this->infoDePos[c.Latitud()][c.Longitud()].jugadoresEsperando = cp;
 
     // Agrego la coordenada c al conjunto de posConPokemons
     this->posConPokemons.AgregarRapido(c);
@@ -134,12 +153,13 @@ void Juego::Conectarse(const Jugador &e, const Coordenada &c)
         Nat lon = cpk.Longitud();
         Nat cantCapt = this->jugadores[e].cantCapturados;
 
-        typename ColaPr::Iterador itPk =
-                this->infoDePos[lat][lon].jugadoresEsperando.Encolar(ColaPr::Clave(cantCapt, e));    // O(log(EC))
+        //typename ColaPr::Iterador itPk =
+        this->jugadores[e].enRangoDe =
+            this->infoDePos[lat][lon].jugadoresEsperando.Encolar(ColaPr::Clave(cantCapt, e));    // O(log(EC))
 
         this->infoDePos[lat][lon].cantMovsEsperando = 0;
 
-        this->jugadores[e].enRangoDe = itPk;
+        //this->jugadores[e].enRangoDe = itPk;
     }
 
     // Lo agrego al conjunto de jugadores de la coordenada c, guardo el iterador devuelto
@@ -190,8 +210,8 @@ void Juego::Moverse(const Jugador &e, const Coordenada &c)
         if (this->jugadores[e].sanciones >= 5)
         {
             // Eliminar los pokemons capturados por el jugador
-            Nat cantCapt;
-            Pokemon pk;
+            Nat cantCapt = 0;
+            Pokemon pk = "";
             typename DiccString<Nat>::Iterador itPC = this->jugadores[e].capturados.CrearIt();
             while (itPC.HaySiguiente())     // O(PC)
             {
@@ -261,6 +281,7 @@ void Juego::Moverse(const Jugador &e, const Coordenada &c)
         typename Conj<Coordenada>::Iterador itPS = this->posConPokemons.CrearIt();
         while (itPS.HaySiguiente())
         {
+            bool capturado = false;
             Coordenada posPS = itPS.Siguiente();
             Nat latPS = posPS.Latitud();
             Nat lonPS = posPS.Longitud();
@@ -283,7 +304,8 @@ void Juego::Moverse(const Jugador &e, const Coordenada &c)
             if (sumaMovsEsp) this->infoDePos[latPS][lonPS].cantMovsEsperando++;
 
             // Verifico si el pokemon es capturado
-            if (this->infoDePos[latPS][lonPS].cantMovsEsperando >= 10)
+            capturado = this->infoDePos[latPS][lonPS].cantMovsEsperando >= 10;
+            if (capturado)
             {
                 // Obtengo el pokemon de la posicion actual
                 Pokemon pkCapt = this->infoDePos[latPS][lonPS].pokemon;
@@ -292,7 +314,7 @@ void Juego::Moverse(const Jugador &e, const Coordenada &c)
                 Jugador jugCapt = this->infoDePos[latPS][lonPS].jugadoresEsperando.Proximo().num;
 
                 // Sumo el pk al jugador
-                this->jugadores[e].cantCapturados++;
+                this->jugadores[jugCapt].cantCapturados++;
                 if (this->jugadores[jugCapt].capturados.Definido(pkCapt))       // O(|P|)
                     this->jugadores[jugCapt].capturados.Obtener(pkCapt)++;      // O(|P|)
                 else
@@ -311,13 +333,15 @@ void Juego::Moverse(const Jugador &e, const Coordenada &c)
                 this->infoDePos[latPS][lonPS].cantMovsEsperando = 0;
             }
 
-            itPS.Avanzar();
+            if (!capturado) itPS.Avanzar();
+
         } // O(PS * |P|)
 
         // Actualizo la posicion del jugador
         this->jugadores[e].enPos.EliminarSiguiente();
         this->jugadores[e].enPos =
             this->infoDePos[c.Latitud()][c.Longitud()].jugadoresEnPos.AgregarRapido(e);
+        this->jugadores[e].posicion = c;
     }
 }
 
@@ -440,7 +464,8 @@ bool Juego::PuedoAgregarPokemon(const Coordenada &c) const
 bool Juego::HayPokemonCercano(const Coordenada &c) const
 {
     bool hayPk = false;
-    Nat lat, lon = 0;
+    Nat lat = 0;
+    Nat lon = 0;
 
     Conj<Coordenada> pc = this->PosCercanas(c);
     typename Conj<Coordenada>::const_Iterador it = pc.CrearIt();
@@ -465,7 +490,8 @@ Coordenada Juego::PosPokemonCercano(const Coordenada &c) const
     #endif
 
     bool hayPk = false;
-    Nat lat, lon = 0;
+    Nat lat = 0;
+    Nat lon = 0;
 
     Conj<Coordenada> pc = this->PosCercanas(c);
     typename Conj<Coordenada>::const_Iterador it = pc.CrearIt();
@@ -489,9 +515,10 @@ Conj<Jugador> Juego::EntrenadoresPosibles(const Coordenada &c, const Conj<Jugado
         assert( this->HayPokemonCercano(c) );
     #endif
 
-    Conj<Jugador> cj = Conj<Jugador>();
+    Conj<Jugador> cj;
 
-    Nat lat, lon = 0;
+    Nat lat = 0;
+    Nat lon = 0;
     typename Conj<Jugador>::const_Iterador itJug;
 
     Conj<Coordenada> pc = this->PosCercanas(c);
@@ -528,7 +555,11 @@ Nat Juego::IndiceRareza(const Pokemon &p) const
     Nat cantMismaEspecie = this->CantMismaEspecie(p);
     Nat cantTotal = this->CantPokemonsTotales();
 
-    return (100 - (100 * (cantMismaEspecie / cantTotal)));
+    double porcPk = 100 * (((cantMismaEspecie + 0.0) / cantTotal));
+
+    Nat res = 100 - (int)porcPk;
+
+    return res;
 }
 
 Nat Juego::CantPokemonsTotales() const
@@ -538,7 +569,8 @@ Nat Juego::CantPokemonsTotales() const
 
 Nat Juego::CantMismaEspecie(const Pokemon &p) const
 {
-    Nat cantSalvajes, cantCapturados = 0;
+    Nat cantSalvajes = 0;
+    Nat cantCapturados = 0;
 
     if (this->pokemons.Definido(p))
     {
@@ -553,20 +585,26 @@ Nat Juego::CantMismaEspecie(const Pokemon &p) const
 
 Conj<Coordenada> Juego::PosCercanas(const Coordenada &c) const
 {
-    Conj<Coordenada> cs = Conj<Coordenada>();
+    Conj<Coordenada> cs;
 
     Nat lat = c.Latitud();
     Nat lon = c.Longitud();
 
     {
-        Coordenada n = Coordenada(lat - 2, lon);
-        if (this->mapa.posExistente(n))
-            cs.AgregarRapido(n);
+        if (lat >= 2)
+        {
+            Coordenada n = Coordenada(lat - 2, lon);
+            if (this->mapa.posExistente(n))
+                cs.AgregarRapido(n);
+        }
     }
     {
-        Coordenada n = Coordenada(lat - 1, lon);
-        if (this->mapa.posExistente(n))
-            cs.AgregarRapido(n);
+        if (lat >= 1)
+        {
+            Coordenada n = Coordenada(lat - 1, lon);
+            if (this->mapa.posExistente(n))
+                cs.AgregarRapido(n);
+        }
     }
     {
         Coordenada n = Coordenada(lat + 1, lon);
@@ -579,14 +617,20 @@ Conj<Coordenada> Juego::PosCercanas(const Coordenada &c) const
             cs.AgregarRapido(n);
     }
     {
-        Coordenada n = Coordenada(lat, lon - 2);
-        if (this->mapa.posExistente(n))
-            cs.AgregarRapido(n);
+        if (lon >= 2)
+        {
+            Coordenada n = Coordenada(lat, lon - 2);
+            if (this->mapa.posExistente(n))
+                cs.AgregarRapido(n);
+        }
     }
     {
-        Coordenada n = Coordenada(lat, lon - 1);
-        if (this->mapa.posExistente(n))
-            cs.AgregarRapido(n);
+        if (lon >= 1)
+        {
+            Coordenada n = Coordenada(lat, lon - 1);
+            if (this->mapa.posExistente(n))
+                cs.AgregarRapido(n);
+        }
     }
     {
         Coordenada n = Coordenada(lat, lon + 1);
@@ -599,19 +643,28 @@ Conj<Coordenada> Juego::PosCercanas(const Coordenada &c) const
             cs.AgregarRapido(n);
     }
     {
-        Coordenada n = Coordenada(lat - 1, lon - 1);
-        if (this->mapa.posExistente(n))
-            cs.AgregarRapido(n);
+        if (lat >= 1 && lon >= 1)
+        {
+            Coordenada n = Coordenada(lat - 1, lon - 1);
+            if (this->mapa.posExistente(n))
+                cs.AgregarRapido(n);
+        }
     }
     {
-        Coordenada n = Coordenada(lat - 1, lon + 1);
-        if (this->mapa.posExistente(n))
-            cs.AgregarRapido(n);
+        if (lat >= 1)
+        {
+            Coordenada n = Coordenada(lat - 1, lon + 1);
+            if (this->mapa.posExistente(n))
+                cs.AgregarRapido(n);
+        }
     }
     {
-        Coordenada n = Coordenada(lat + 1, lon - 1);
-        if (this->mapa.posExistente(n))
-            cs.AgregarRapido(n);
+        if (lon >= 1)
+        {
+            Coordenada n = Coordenada(lat + 1, lon - 1);
+            if (this->mapa.posExistente(n))
+                cs.AgregarRapido(n);
+        }
     }
     {
         Coordenada n = Coordenada(lat + 1, lon + 1);

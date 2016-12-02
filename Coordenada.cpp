@@ -44,5 +44,5 @@ bool Coordenada::operator == (const Coordenada& otra) const
 }
 
 bool Coordenada::operator != (const Coordenada& otra) const{
-    return not (this == &otra);
+    return (this->latitud != otra.latitud) || (this->longitud != otra.longitud);
 }
