@@ -53,7 +53,7 @@ Juego::~Juego()
 
 void Juego::AgregarPokemon(const Pokemon &p, const Coordenada &c)
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( this->PuedoAgregarPokemon(c) );
     #endif
 
@@ -63,10 +63,7 @@ void Juego::AgregarPokemon(const Pokemon &p, const Coordenada &c)
     Nat lon = 0;
     Conj<Coordenada> cercanas = this->PosCercanas(c);
     typename Conj<Coordenada>::Iterador itCercanas = cercanas.CrearIt();
-    Conj<Jugador> cj;
     typename Conj<Jugador>::Iterador itCj;
-    ColaPr cp;
-    typename ColaPr::Iterador itCp;
 
     // Vaciar la cola de prioridad, que puede tener elementos por un pk anterior que fue capturado
     while (!this->infoDePos[c.Latitud()][c.Longitud()].jugadoresEsperando.EsVacio())
@@ -94,10 +91,6 @@ void Juego::AgregarPokemon(const Pokemon &p, const Coordenada &c)
             // si esta conectado, lo agrego a la cola de prioridad del pokemon
             if (this->EstaConectado(jug))
             {
-                //itCp = cp.Encolar(ColaPr::Clave(cantCapt, jug));    // O(Log(EC))
-
-                //this->jugadores[jug].enRangoDe = itCp;
-
                 this->jugadores[jug].enRangoDe =
                     this->infoDePos[c.Latitud()][c.Longitud()].jugadoresEsperando.Encolar(ColaPr::Clave(cantCapt, jug));    // O(Log(EC))
             }
@@ -111,7 +104,6 @@ void Juego::AgregarPokemon(const Pokemon &p, const Coordenada &c)
     // Set en infoDePos para la coordenada c: hayPokemon en true, el pokemon p y su cola de prioridad de jugadores
     this->infoDePos[c.Latitud()][c.Longitud()].hayPokemon = true;
     this->infoDePos[c.Latitud()][c.Longitud()].pokemon = p;
-    //this->infoDePos[c.Latitud()][c.Longitud()].jugadoresEsperando = cp;
 
     // Agrego la coordenada c al conjunto de posConPokemons
     this->posConPokemons.AgregarRapido(c);
@@ -140,7 +132,7 @@ Nat Juego::AgregarJugador()
 
 void Juego::Conectarse(const Jugador &e, const Coordenada &c)
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( e < this->jugadores.Longitud() && !this->EstaConectado(e) && this->mapa.posExistente(c) );
     #endif
 
@@ -173,7 +165,7 @@ void Juego::Conectarse(const Jugador &e, const Coordenada &c)
 
 void Juego::Desconectarse(const Jugador &e)
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( e < this->jugadores.Longitud() && this->EstaConectado(e) );
     #endif
 
@@ -194,7 +186,7 @@ void Juego::Desconectarse(const Jugador &e)
 
 void Juego::Moverse(const Jugador &e, const Coordenada &c)
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( e < this->jugadores.Longitud() && EstaConectado(e) && this->mapa.posExistente(c) );
     #endif
 
@@ -347,7 +339,7 @@ void Juego::Moverse(const Jugador &e, const Coordenada &c)
 
 bool Juego::DebeSancionarse(const Jugador &e, const Coordenada &c) const
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( e < this->jugadores.Longitud() );
     #endif
 
@@ -374,7 +366,7 @@ Juego::ItJugadores Juego::Jugadores() const
 
 bool Juego::EstaConectado(const Jugador &e) const
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( e < this->jugadores.Longitud() );
     #endif
 
@@ -383,7 +375,7 @@ bool Juego::EstaConectado(const Jugador &e) const
 
 Nat Juego::Sanciones(const Jugador &e) const
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( e < this->jugadores.Longitud() );
     #endif
 
@@ -392,7 +384,7 @@ Nat Juego::Sanciones(const Jugador &e) const
 
 Coordenada Juego::Posicion(const Jugador &e) const
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( e < this->jugadores.Longitud() && this->EstaConectado(e) );
     #endif
 
@@ -401,7 +393,7 @@ Coordenada Juego::Posicion(const Jugador &e) const
 
 const typename DiccString<Nat>::Iterador Juego::Pokemos(const Jugador &e) const
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( e < this->jugadores.Longitud() );
     #endif
 
@@ -429,7 +421,7 @@ Conj<Coordenada> Juego::PosConPokemons() const
 
 Pokemon Juego::PokemonEnPos(const Coordenada &c) const
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( this->posConPokemons.Pertenece(c) );
     #endif
 
@@ -438,7 +430,7 @@ Pokemon Juego::PokemonEnPos(const Coordenada &c) const
 
 Nat Juego::CantMovimientosParaCaptura(const Coordenada &c) const
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( this->posConPokemons.Pertenece(c) );
     #endif
 
@@ -487,7 +479,7 @@ bool Juego::HayPokemonCercano(const Coordenada &c) const
 
 Coordenada Juego::PosPokemonCercano(const Coordenada &c) const
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( this->HayPokemonCercano(c) );
     #endif
 
@@ -513,7 +505,7 @@ Coordenada Juego::PosPokemonCercano(const Coordenada &c) const
 
 Conj<Jugador> Juego::EntrenadoresPosibles(const Coordenada &c, const Conj<Jugador> &es) const
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( this->HayPokemonCercano(c) );
     #endif
 
@@ -550,7 +542,7 @@ Conj<Jugador> Juego::EntrenadoresPosibles(const Coordenada &c, const Conj<Jugado
 
 Nat Juego::IndiceRareza(const Pokemon &p) const
 {
-    #ifdef DEBUG
+    #ifdef DEBUGX
         assert( this->pokemons.Definido(p) );
     #endif
 
@@ -709,7 +701,7 @@ bool Juego::ItJugadores::HayMas() const
 
 Jugador Juego::ItJugadores::Actual() const
 {
-    assert(this->HayMas());
+    //assert(this->HayMas());
 
     Nat i = this->pos;
 
@@ -720,7 +712,7 @@ Jugador Juego::ItJugadores::Actual() const
 
 void Juego::ItJugadores::Avanzar()
 {
-    assert(this->HayMas());
+    //assert(this->HayMas());
 
     Nat i = this->pos;
 

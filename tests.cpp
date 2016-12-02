@@ -84,6 +84,14 @@ void test_puedo_agregar_pokemons()
 
     Driver d(cs);
 
+    for (Nat lat = 0; lat <= 5; lat++)
+    {
+        for (Nat lon = 0; lon <= 5; lon++)
+        {
+            ASSERT( d.puedoAgregarPokemon(Coordenada(lat, lon)));
+        }
+    }
+
     d.agregarPokemon("pokemon", Coordenada(0, 0));
 
     for (Nat lat = 0; lat <= 5; lat++)
@@ -97,6 +105,72 @@ void test_puedo_agregar_pokemons()
             else
             {
                 ASSERT( !d.puedoAgregarPokemon(Coordenada(lat, lon)));
+            }
+        }
+    }
+
+    ASSERT (!d.puedoAgregarPokemon(Coordenada(90, 90)));
+
+}
+
+void test_puedo_agregar_pokemons_2()
+{
+    Conj<Coordenada> cs;
+    for (Nat lat = 0; lat <= 10; lat++)
+        for (Nat lon = 0; lon <= 10; lon++)
+            cs.AgregarRapido(Coordenada(lat, lon));
+
+    Driver d(cs);
+
+    for (Nat lat = 0; lat <= 10; lat++)
+    {
+        for (Nat lon = 0; lon <= 10; lon++)
+        {
+            ASSERT( d.puedoAgregarPokemon(Coordenada(lat, lon)));
+        }
+    }
+
+    d.agregarPokemon("pokemon", Coordenada(5, 5));
+
+    for (Nat lat = 0; lat <= 10; lat++)
+    {
+        for (Nat lon = 0; lon <= 10; lon++)
+        {
+            if ((lon == 0 || lon == 10) && lat != 5)
+            {
+                ASSERT( d.puedoAgregarPokemon(Coordenada(lat, lon)));
+            }
+            else
+            {
+                if ((lon == 1 || lon == 9) && (lat == 0 || lat == 1 || lat == 9 || lat == 10))
+                {
+                    ASSERT( d.puedoAgregarPokemon(Coordenada(lat, lon)));
+                }
+                else
+                {
+                    if ((lon == 2 || lon == 8) && (lat == 0 || lat == 10))
+                    {
+                        ASSERT( d.puedoAgregarPokemon(Coordenada(lat, lon)));
+                    }
+                    else
+                    {
+                        if ((lon == 3 || lon == 7) && (lat == 0 || lat == 10))
+                        {
+                            ASSERT( d.puedoAgregarPokemon(Coordenada(lat, lon)));
+                        }
+                        else
+                        {
+                            if ((lon == 4 || lon == 6) && (lat == 0 || lat == 10))
+                            {
+                                ASSERT( d.puedoAgregarPokemon(Coordenada(lat, lon)));
+                            }
+                            else
+                            {
+                                ASSERT( !d.puedoAgregarPokemon(Coordenada(lat, lon)));
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -530,6 +604,7 @@ int main()
     RUN_TEST(test_agregar_jugadores);
     RUN_TEST(test_conectar_desconectar_jugador);
     RUN_TEST(test_puedo_agregar_pokemons);
+    RUN_TEST(test_puedo_agregar_pokemons_2);
     RUN_TEST(test_agregar_pokemons);
 
     RUN_TEST(super_test);
