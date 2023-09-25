@@ -1,4 +1,4 @@
-# TP3_Algo2
+# Algoritmos y estructura de datos II - TP3
 
 ## 'Pokémon Argentina'
 
